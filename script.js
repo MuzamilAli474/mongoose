@@ -37,7 +37,7 @@ registrationform.addEventListener('submit', (event) => {
     .then(result => {
         console.log("Data saved:", result);
         registrationform.reset();
-        window.location.replace("login.html");
+        window.location.replace("menu.html");
 
     })
     .catch(error => {

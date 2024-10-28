@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Menu</title>
+    <style>
+        body {
+        background-color: black; /* Set the page background color to black */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* height: 100vh; */
+        margin: 0;
+    }
+        /* Menu Container */
+        .menu {
+            background-color: black;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Menu Items */
+        .menu button {
+            float: left;
+            display: block;
+            color:black;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            font-size: 16px;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+
+        /* Hover Effect */
+        .menu button:hover {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu">
+        <button type="submit" id="register">Register</button>
+        <button type="submit" id="login">login</button>
+        <button type="submit" id="logout">logout</button>
+
+        <button type="submit" id="setting">Account Setting</button>
+        
+
+       
+    </div>
+    <script>
+        document.getElementById("register").addEventListener("click", function() {
+            window.location.replace("index.html");  
+        });
+    
+        document.getElementById("login").addEventListener("click", function() {
+            window.location.replace("login.html")
+        });
+    
+        document.getElementById("setting").addEventListener("click", function() {
+           window.location.replace('setting.html')
+        });
+
+
+        document.getElementById("logout").addEventListener("click", function() {
+
+            localStorage.removeItem('token');
+           window.location.replace('login.html')
+        });
+    </script>
+
+</body>
+</html>

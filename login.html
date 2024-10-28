@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Login Form</title>
+    <title> Login Form</title>
     <style>body {
         background-color: black; /* Set the page background color to black */
         display: flex;
@@ -88,7 +88,7 @@ body:JSON.stringify(data)
 console.log("User is login",result);
 localStorage.setItem('token',result.token);
 signin.reset();
-    // window.location.replace("setting.html");
+    window.location.replace("menu.html");
 
 })
 .catch(error=>{

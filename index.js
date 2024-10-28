@@ -67,7 +67,7 @@ app.get('/all-users', async(req,res)=>{
 // get singel user 
 
 app.get('/user/:id', async(req,res)=>{
-    console.log("okkkkkkkkkkkkkkkkkkk")
+  
    try {
     const {id}= req.params;
     console.log(id)
@@ -115,7 +115,7 @@ app.delete('/deleteuser/:id',authenticate ,async(req,res)=>{
 }});
 
 // user update api 
-app.put('/updateuser/:id',authenticate ,async(req,res)=>{
+app.put('/updateuser/:id' ,async(req,res)=>{
     try {
         const userId =req.params.id;
        const userdata= req.body
