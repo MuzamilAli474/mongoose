@@ -2,24 +2,24 @@ const mongoose = require('mongoose');
 
 // Define the Post schema with a reference to the User schema
 const postSchema = new mongoose.Schema({
-    title: { 
-        type: String, 
-        required: true 
+    title: {
+        type: String,
+        required: true,
     },
     content: {
         type: String,
-        required: true
+        required: true,
     },
     photo: {
-        type: String,
-        required:true
+        type: String, // This will store the file path of the uploaded photo
+        required: true,
     },
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-       
-    }
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
 });
+ 
  
 const Post = mongoose.model('Post', postSchema);
 module.exports = Post;

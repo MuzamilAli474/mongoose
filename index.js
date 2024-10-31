@@ -14,7 +14,6 @@ app.use(cors());
 app.use(express.json());
 
 let secretKey="1234";
-
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
@@ -35,31 +34,23 @@ const upload = multer({ storage: storage });
 // Serve static files from 'uploads' directory
 app.use('/uploads', express.static('uploads'));
 
-app.post('/upload',authenticate,upload.single('photo'), async (req, res) => {
+app.post('/posts', upload.single('photo'), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
-        }
-
         const { title, content } = req.body;
-        const newPost = await Post.create({
-            title,
-            content,
-            userId : req.userId, 
-            photo: req.file.filename 
-        });
+        const photo = req.file.path; // Get the file path of the uploaded photo
 
-        console.log("Uploaded file:", newPost);
+        const newPost = new Post({ title, content, photo });
+        await newPost.save();
 
-        res.status(201).json({
-            message: 'User created successfully',
-            newPost
-        });
+        res.status(201).json({ message: 'Post created successfully', post: newPost });
     } catch (error) {
-        console.error("Error uploading photo:", error);
-        res.status(500).json({ message: 'Error uploading photo', error });
+        res.status(500).json({ message: 'Error creating post', error: error.message });
     }
-});
+}); 
+
+
+
+ 
 
  
 

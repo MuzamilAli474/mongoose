@@ -35,7 +35,8 @@
         }
         .card-image {
             width: 100%;
-            height: auto;
+            height: auto; 
+            
         }
         .card-content {
             margin-top: 10px;
@@ -57,53 +58,63 @@
     <div id="cardContainer"></div>
 
     <script>
-        // Fetch data from your API
-        async function fetchData() {
-            try {
-                const response = await fetch('http://localhost:3001/posts'); // Replace with your API URL
-                const data = await response.json();
-console.log(data)
-                if(!response){
-                    console.log("error while fetching posts ")
-                }
-                
-                // Assuming data is an array of objects
-                displayData(data);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+      // Fetch data from your API
+async function fetchData() {
+ const totken=localStorage.getItem('token');
+if(!totken){
+ alert("first login ")
+}
+
+
+
+    try {
+        const response = await fetch('http://localhost:3001/posts'); 
+        const data = await response.json();
+ console.log()
+        if (!response) {
+            console.log("error while fetching posts");
         }
 
-        // Display data in the card format
-        function displayData(data) {
-            const cardContainer = document.getElementById('cardContainer');
+        // Assuming data is an array of objects
+        displayData(data);
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
 
-            data.forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'card';
+// Display data in the card format
+function displayData(data) {
+    console.log(data);
+    const cardContainer = document.getElementById('cardContainer');
+    cardContainer.innerHTML = ""; // Clear existing cards before appending new ones
 
-    card.innerHTML = `
-        <div class="card-header">
-            <h2 class="card-title">${item.title}</h2>
-        </div>
-        <div class="card-body">
-            <div class="card-content">${item.content}</div>
-            <img src="/uploads/${item.photo}" alt="Image" class="card-image">
-        </div>
-        <div class="card-footer">
-            <button class="like-button">Like</button>
-            <input type="text" id="commentInput" placeholder="Add a comment" class="comment-input">
-            <button class="send-button">Send</button>
-        </div>
-    `;
+    data.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
 
-    cardContainer.appendChild(card);
-});
+        card.innerHTML = `  
+            <div class="card-header">
+                <h2 class="card-title">${item.title}</h2>
+                <p class="card-user">Posted by: ${item.name}</p>
+            </div>
+            <div class="card-body">
+                <div class="card-content">${item.content}</div>
+                <img src="/uploads/${item.photo}" alt="Image" class="card-image">
+            </div>
+            <div class="card-footer">
+                <button class="like-button">Like</button>
+                <input type="text" id="commentInput" placeholder="Add a comment" class="comment-input">
+                <button class="send-button">Send</button>
+            </div>
+        `;
 
-        }
+        cardContainer.appendChild(card);
+    });
+}
 
-        // Call fetchData when the page loads
-        window.onload = fetchData;
+// Call fetchData when the page loads
+// window.onload = fetchData;
+
     </script>
 </body>
 </html>
