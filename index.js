@@ -1,7 +1,11 @@
 const express = require("express");
-dbconnection=require('./mongoose')
-const User=require('./model/userModel')
+dbconnection=require('./mongoose');
+const User=require('./model/userModel');
+const Post=require('./model/postModel');
 const cors = require('cors');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 var jwt = require('jsonwebtoken');
 const app = express();
 dbconnection();
@@ -11,10 +15,77 @@ app.use(express.json());
 
 let secretKey="1234";
 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+}
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// Serve static files from 'uploads' directory
+app.use('/uploads', express.static('uploads'));
+
+app.post('/upload',authenticate,upload.single('photo'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const { title, content } = req.body;
+        const newPost = await Post.create({
+            title,
+            content,
+            userId : req.userId, 
+            photo: req.file.filename 
+        });
+
+        console.log("Uploaded file:", newPost);
+
+        res.status(201).json({
+            message: 'User created successfully',
+            newPost
+        });
+    } catch (error) {
+        console.error("Error uploading photo:", error);
+        res.status(500).json({ message: 'Error uploading photo', error });
+    }
+});
+
+ 
+
+
+app.get('/posts', authenticate ,async (req, res) => {
+    try {
+        const posts = await Post.find().populate('user');;
+        console.log(posts)
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching posts' });
+    }
+});
+
+
+
+
+
+
+
+
 // register  newUser 
 app.post('/user', async(req,res)=>{
 try {
-    // console.log(req.body)
+    console.log(req.body)
     const {name,email,password,phone}=req.body;
     const user=await User.findOne({email});
     // console.log(user)
@@ -44,7 +115,7 @@ catch (error) {
 
 // to get all users 
  
-app.get('/all-users', async(req,res)=>{
+app.get('/all-users', authenticate,async(req,res)=>{
     try {
         const users= await User.find();
         if(users){
@@ -66,7 +137,7 @@ app.get('/all-users', async(req,res)=>{
 
 // get singel user 
 
-app.get('/user/:id', async(req,res)=>{
+app.get('/user/:id',authenticate, async(req,res)=>{
   
    try {
     const {id}= req.params;
@@ -93,7 +164,7 @@ app.get('/user/:id', async(req,res)=>{
 });
  
 //user delete api
-app.delete('/deleteuser/:id',authenticate ,async(req,res)=>{
+app.delete('/deleteuser/:id', authenticate ,async(req,res)=>{
   try {
     let {id}=req.params;
  let user= await User.findOneAndDelete(id);
@@ -115,7 +186,7 @@ app.delete('/deleteuser/:id',authenticate ,async(req,res)=>{
 }});
 
 // user update api 
-app.put('/updateuser/:id' ,async(req,res)=>{
+app.put('/updateuser/:id', authenticate ,async(req,res)=>{
     try {
         const userId =req.params.id;
        const userdata= req.body
@@ -154,8 +225,8 @@ app.post('/login', async(req,res)=> {
 try {
     //  console.log(req.body);
     const {email,password}=req.body;
-    const logindetail= await User.findOne({email,password})
-    // console.log(logindetail)
+    const logindetail= await User.findOne({email})
+    console.log(logindetail)
     if(logindetail.email==req.body.email && logindetail.password==req.body.password){
         var token = jwt.sign({email:logindetail.email,id:logindetail.id},secretKey);
         res.status(200).json({
@@ -166,36 +237,85 @@ try {
     }else{
         res.status(400).json({
             message:"invalid Information "
+
         })
+       
     }
+    // if(!logindetail) {
+    //     return res.status(404).json({
+    //         message : 'User not found register first'
+    //     })
+    // }
+    // token = jwt.sign({email : logindetail.email, id : logindetail._id}, secretKey);
+    // console.log('tokrn.........', token);
+    // return res.status(200).json({
+    //      token,
+    //     message : 'Logged in successfully',
+    // })
 } catch (error) {
+    
      return res.status(500).json({
+        
         message:"Internal server error!"
     })
 }
 })
  
+
+
  
-function authenticate(req,res,next){
-    let authHeader = req.headers.authorization;
-    const token = authHeader.split(' ')[1]; 
-    if(!token){
-      return res.status(401).json({
-        message:"Not logged In."
-      })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+function authenticate(req, res, next) {
+    const authHeader = req.headers.authorization;
+
+    // Check if the authorization header is present
+    if (!authHeader) {
+        return res.status(401).json({
+            message: "Not logged In."
+        });
     }
-        var decoded = jwt.verify(token, secretKey);
-    
-        req.user=decoded;
-   
-    next();
-  }
+
+    // Extract token from the authorization header
+    const token = authHeader.split(' ')[1];
+
+    // Check if the token is present
+    if (!token) {
+        return res.status(401).json({
+            message: "Not logged In."
+        });
+    }
+
+    // Verify the token
+    try {
+        const decoded = jwt.verify(token, secretKey);
+        req.user = decoded; // Attach the decoded user info to the request object
+        // console.log('Decoded user:', req.user); 
+        next(); // Proceed to the next middleware
+    } catch (err) {
+        return res.status(403).json({
+            message: "Invalid token."
+        });
+    }
+}
 
 
  
-  
 
-  app.get('/islogin_user',authenticate, async(req,res)=>{
+  app.get('/islogin_user', async(req,res)=>{
  
    try {
     let getuser = await User.findOne({email});

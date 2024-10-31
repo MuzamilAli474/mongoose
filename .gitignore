@@ -2,3 +2,29 @@
 /package-lock.json
 /post.js
 /setting.html
+
+
+
+    async function uploadFile() {
+        const form = document.getElementById('uploadForm');
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('http://localhost:3001/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.getElementById('message').textContent = result.message;
+                form.reset(); 
+            } else {
+                document.getElementById('message').textContent = result.message || 'Failed to upload';
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            document.getElementById('message').textContent = 'An error occurred. Please try again.';
+        }
+    }
