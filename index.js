@@ -82,7 +82,7 @@ app.get('/getpost', authenticate ,async(req,res)=>{
  
 
 
-//  login user posts 
+//  login user posts profile 
 app.get('/posts', authenticate ,async (req, res) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
@@ -91,7 +91,7 @@ app.get('/posts', authenticate ,async (req, res) => {
 
         const posts = await Post.find({userId}).populate('userId');
     
-        console.log(posts)
+        // console.log(posts)
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
@@ -101,7 +101,7 @@ app.get('/posts', authenticate ,async (req, res) => {
 
 
 // update post 
-app.get('/updatepost/:postId', authenticate,async (req, res) => {
+app.get('/getupdatepost/:postId', authenticate,async (req, res) => {
     try {
         const postId = req.params.postId;
         const post = await Post.findById(postId); 
@@ -117,23 +117,33 @@ app.get('/updatepost/:postId', authenticate,async (req, res) => {
     }
 });
 
-app.put('/updatepost/:postId', authenticate, async (req, res) => {
+ 
+app.put('/updatepost/:postId', authenticate, upload.single('photo'), async (req, res) => {
+    const postId = req.params.postId;
+    
     try {
-        const postId = req.params.postId;
-        const updatedData = req.body;
+        const updatedData = {
+            title: req.body.title,
+            content: req.body.content,
+            photo: req.file ? req.file.path : undefined,  
+        };
 
-        const post = await Post.findByIdAndUpdate(postId, updatedData, { new: true });
+        console.log('Updated Data:', updatedData);
 
-        if (!post) {
+        const updatedPost = await Post.findByIdAndUpdate(postId, updatedData, { new: true });
+
+        if (!updatedPost) {
+            console.log('No post found with ID:', postId);
             return res.status(404).json({ message: 'Post not found' });
         }
 
-        res.json({ message: 'Post updated successfully', post });
+        res.json(updatedPost);
     } catch (error) {
-        console.error(error);
+        console.error('Error updating post:', error);
         res.status(500).json({ message: 'Error updating post' });
     }
 });
+
 
 
     
@@ -202,9 +212,9 @@ app.get('/user/:id',authenticate, async(req,res)=>{
   
    try {
     const {id}= req.params;
-    console.log(id)
+    // console.log(id)
     const user= await User.findById(id);
-    console.log(user)
+    // console.log(user)
     if(user){
         res.status(200).json({
             user,

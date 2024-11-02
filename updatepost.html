@@ -81,7 +81,7 @@
     const token = localStorage.getItem('token');
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get('postId');
-    const url = `http://localhost:3001/updatepost/${postId}`;
+    const url = `http://localhost:3001/getupdatepost/${postId}`;
 
     async function fetchPostData() {
         try {
@@ -98,9 +98,41 @@
             console.error('Error fetching post data:', error);
         }
     }
+  
+    async function updatePost(event) {
+        event.preventDefault();  
 
-    
+        const formData = new FormData(document.getElementById('editForm'));
+ 
+        
+        try {
+            const response = await fetch(`http://localhost:3001/updatepost/${postId}`, {
+                method: 'PUT',  
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                const updatedPost = await response.json();
+             
+                document.getElementById('responseMessage').textContent = 'Post updated successfully!';
+                 
+            } else {
+                const errorData = await response.json();
+                document.getElementById('responseMessage').textContent = `Error updating post: ${errorData.message}`;
+            }
+        } catch (error) {
+            console.error('Error updating post:', error);
+            document.getElementById('responseMessage').textContent = 'Error updating post. Please try again.';
+        }
+    }
+
+    document.getElementById('editForm').addEventListener('submit', updatePost);
+
     fetchPostData();
+    
 </script>
 </body>
 </html>
