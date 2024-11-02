@@ -100,6 +100,40 @@ app.get('/posts', authenticate ,async (req, res) => {
 });
 
 
+// update post 
+app.get('/updatepost/:postId', authenticate,async (req, res) => {
+    try {
+        const postId = req.params.postId;
+        const post = await Post.findById(postId); 
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        res.json(post);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error retrieving post' });
+    }
+});
+
+app.put('/updatepost/:postId', authenticate, async (req, res) => {
+    try {
+        const postId = req.params.postId;
+        const updatedData = req.body;
+
+        const post = await Post.findByIdAndUpdate(postId, updatedData, { new: true });
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        res.json({ message: 'Post updated successfully', post });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error updating post' });
+    }
+});
 
 
     
