@@ -7,6 +7,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 var jwt = require('jsonwebtoken');
+const { decode } = require("punycode");
 const app = express();
 dbconnection();
 app.use(cors());
@@ -21,25 +22,32 @@ if (!fs.existsSync(uploadsDir)) {
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        cb(null, 'uploads');
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + '-' + file.originalname);
     }
 });
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const upload = multer({ storage: storage });
+ 
 
-// Serve static files from 'uploads' directory
-app.use('/uploads', express.static('uploads'));
 
-app.post('/posts', upload.single('photo'), async (req, res) => {
+// creat post 
+app.post('/posts', authenticate , upload.single('photo'), async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token,secretKey);
+    // console.log(token)
+       const userId=decoded.id;
+        // console.log(userId)
     try {
         const { title, content } = req.body;
-        const photo = req.file.path; // Get the file path of the uploaded photo
+       
+        const photo = req.file.path;  
 
-        const newPost = new Post({ title, content, photo });
+        const newPost = new Post({ title, content, photo ,userId});
         await newPost.save();
 
         res.status(201).json({ message: 'Post created successfully', post: newPost });
@@ -48,16 +56,41 @@ app.post('/posts', upload.single('photo'), async (req, res) => {
     }
 }); 
 
+ // timeline  posts
+app.get('/getpost', authenticate ,async(req,res)=>{
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token,secretKey);
+    // console.log(decoded);
+    const userId =decoded.id;
+    // console.log(userId)
+    try {
+       
+        const otherUserPosts = await Post.find({ userId: { $ne: userId } }).populate('userId');
+       
+        if (otherUserPosts.length === 0) {
+            return res.status(404).json({ message: 'No posts found from other users' });
+        }
 
+        res.status(200).json({ posts: otherUserPosts });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving posts', error: error.message });
+    }
+})
 
  
 
  
 
 
+//  login user posts 
 app.get('/posts', authenticate ,async (req, res) => {
     try {
-        const posts = await Post.find().populate('user');;
+        const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token,secretKey);
+     const userId= decoded.id;
+
+        const posts = await Post.find({userId}).populate('userId');
+    
         console.log(posts)
         res.status(200).json(posts);
     } catch (error) {
@@ -67,6 +100,9 @@ app.get('/posts', authenticate ,async (req, res) => {
 });
 
 
+
+
+    
 
 
 

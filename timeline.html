@@ -3,118 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display API Data in Card</title>
+    <title>Posts from Other Users</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
             display: flex;
-            flex-direction: column; /* Stack cards vertically */
-            align-items: center; /* Center align cards */
-            margin: 0;
+            justify-content: center;
             padding: 20px;
-            background-color: #f0f0f0; /* Optional background color */
         }
-        .card {
-            border: 1px solid #ccc;
+        #postsContainer {
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 80px;
+            margin-right: 20px;
+        }
+        .post {
+            width: 100%;
+            background-color: #fff;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            overflow: hidden;
-            margin: 20px 0; /* Add vertical spacing between cards */
-            max-width: 700px;
-            width: 100%; /* Full width on small screens */
-            background-color: white; /* Optional card background */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin: 10px 0;
         }
-        .card-header {
-            background-color: #f8f8f8;
-            padding: 10px;
+        h2 {
+            margin: 0 0 10px;
+            font-size: 1.2em;
+            color: #333;
         }
-        .card-title {
-            margin: 0;
-        }
-        .card-body {
-            padding: 10px;
+        p {
+            margin: 5px 0;
+            color: #555;
         }
         .card-image {
-            width: 100%;
-            height: auto; 
-            
-        }
-        .card-content {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
             margin-top: 10px;
         }
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background-color: #f8f8f8;
+        .post strong {
+            font-weight: 600;
+            color: #000;
         }
-        .comment-input {
-            flex-grow: 1;
-            margin-right: 10px;
-        }  
-        
     </style>
 </head>
 <body>
-    <div id="cardContainer"></div>
+    <h1>Posts   Other Users</h1>
+    <div id="postsContainer"></div>
 
     <script>
-      // Fetch data from your API
-async function fetchData() {
- const totken=localStorage.getItem('token');
-if(!totken){
- alert("first login ")
-}
+        async function fetchPosts() {
+            const token = localStorage.getItem('token'); // Assuming you store your token in localStorage
+            const response = await fetch('http://localhost:3001/getpost', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.error('Error:', errorResponse.message);
+                alert('Could not fetch posts: ' + errorResponse.message);
+                return;
+            }
 
-
-    try {
-        const response = await fetch('http://localhost:3001/posts'); 
-        const data = await response.json();
- console.log()
-        if (!response) {
-            console.log("error while fetching posts");
+            const data = await response.json();
+            displayPosts(data.posts);
         }
 
-        // Assuming data is an array of objects
-        displayData(data);
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-}
+        function displayPosts(posts) {
+            const postsContainer = document.getElementById('postsContainer');
+            postsContainer.innerHTML = ''; // Clear any previous posts
 
-// Display data in the card format
-function displayData(data) {
-    console.log(data);
-    const cardContainer = document.getElementById('cardContainer');
-    cardContainer.innerHTML = ""; // Clear existing cards before appending new ones
+            posts.forEach(post => {
+                const postDiv = document.createElement('div');
+                postDiv.classList.add('post');
+                postDiv.innerHTML = `
+                 <p><strong>Posted by:</strong> ${post.userId.name}</p> 
+                    <h2>${post.title}</h2>
+                    <p>${post.content}</p>
+                  <img src="${post.photo}" alt="Image" class="card-image">
 
-    data.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'card';
+                   
+                `;
+                postsContainer.appendChild(postDiv);
+            });
+        }
 
-        card.innerHTML = `  
-            <div class="card-header">
-                <h2 class="card-title">${item.title}</h2>
-                <p class="card-user">Posted by: ${item.name}</p>
-            </div>
-            <div class="card-body">
-                <div class="card-content">${item.content}</div>
-                <img src="/uploads/${item.photo}" alt="Image" class="card-image">
-            </div>
-            <div class="card-footer">
-                <button class="like-button">Like</button>
-                <input type="text" id="commentInput" placeholder="Add a comment" class="comment-input">
-                <button class="send-button">Send</button>
-            </div>
-        `;
-
-        cardContainer.appendChild(card);
-    });
-}
-
-// Call fetchData when the page loads
-// window.onload = fetchData;
-
+        // Call fetchPosts when the page loads
+        window.onload = fetchPosts;
     </script>
 </body>
 </html>

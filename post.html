@@ -90,7 +90,7 @@
     formData.append('content', content);
 
     // Add authentication header if needed
-    fetch('http://localhost:3001/upload', { 
+    fetch('http://localhost:3001/posts', { 
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`, 

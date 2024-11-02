@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posts Feed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .post-container {
+            width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+        .post {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .post .user-name {
+            font-weight: bold;
+        }
+        .post .content {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .actions button {
+            border: none;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .card-image{
+            width: 80%;
+            margin-left: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="post-container" id="postContainer">
+    <!-- Posts will be injected here -->
+</div>
+
+<script>
+    async function fetchPosts() {
+        try {
+            const response = await fetch('http://localhost:3001/posts', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}` // assuming token is stored in localStorage
+                }
+            });
+            console.log(response)
+
+            if (response.ok) {
+                const posts = await response.json();
+                displayPosts(posts);
+            } else {
+                console.error('Failed to fetch posts');
+            }
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        }
+    }
+
+    function displayPosts(posts) {
+        const postContainer = document.getElementById('postContainer');
+        postContainer.innerHTML = '';  
+
+        posts.forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.classList.add('post');
+
+            postElement.innerHTML = `
+             <p><strong>Posted by:</strong> ${post.userId.name}</p>
+                 <h2>${post.title}</h2>
+                    <p>${post.content}</p>
+                  <img src="${post.photo}" alt="Image" class="card-image">
+                 
+            `;
+
+            postContainer.appendChild(postElement);
+        });
+    }
+
+   
+    
+
+    // Fetch posts on page load
+    window.onload = fetchPosts;
+</script>
+
+</body>
+</html>
